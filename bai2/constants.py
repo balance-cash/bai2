@@ -53,6 +53,20 @@ class TypeCodeLevel(Enum):
 
 TypeCode = namedtuple('TypeCode', ['code', 'transaction', 'level', 'description'])
 TypeCodes = [
+    # These are dummy empty type codes so that we can skip transactions 
+    # with these type codes for Farmers & Merchants Bank
+    TypeCode('', None, TypeCodeLevel.status, 'Type Code Empty'),
+    TypeCode(' ', None, TypeCodeLevel.status, 'Type Code 1-Space'),
+    TypeCode('  ', None, TypeCodeLevel.status, 'Type Code 2-Spaces'),
+    TypeCode('   ', None, TypeCodeLevel.status, 'Type Code 3-Spaces'),
+    TypeCode('    ', None, TypeCodeLevel.status, 'Type Code 4-Spaces'),
+    TypeCode('     ', None, TypeCodeLevel.status, 'Type Code 5-Spaces'),
+    TypeCode('      ', None, TypeCodeLevel.status, 'Type Code 6-Spaces'),
+    TypeCode('       ', None, TypeCodeLevel.status, 'Type Code 7-Spaces'),
+    TypeCode('        ', None, TypeCodeLevel.status, 'Type Code 8-Spaces'),
+    TypeCode('         ', None, TypeCodeLevel.status, 'Type Code 9-Spaces'),
+    TypeCode('          ', None, TypeCodeLevel.status, 'Type Code 10-Spaces'),
+    # This is the list of all the other type codes to be used in BAI2 file parsing
     TypeCode('000', TypeCodeTransaction.credit, TypeCodeLevel.detail, 'Type Code 000'),
     TypeCode('001', None, TypeCodeLevel.status, 'Type Code 001'),
     TypeCode('002', None, TypeCodeLevel.status, 'Type Code 002'),
