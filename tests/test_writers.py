@@ -102,8 +102,8 @@ class TransactionDetailWriterTestCase(TestCase):
         self.assertEqual(
             output,
             [
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS ",
-                "88, BILLS BILLS BILLS BILLS BILLS BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
+                "88, BILLS",
             ],
         )
 
@@ -301,8 +301,8 @@ class AccountWriterTestCase(TestCase):
             output,
             [
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS",
-                "88, BILLS BILLS BILLS BILLS BILLS BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
+                "88, BILLS",
                 "16,399,1000,0,,,OTHER",
                 "49,23599,5/",
             ],
@@ -343,8 +343,8 @@ class GroupWriterTestCase(TestCase):
                 "16,399,1000,0,,,OTHER",
                 "49,23599,5/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS",
-                "88, BILLS BILLS BILLS BILLS BILLS BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
+                "88, BILLS",
                 "16,399,1000,0,,,OTHER",
                 "49,23599,5/",
                 "98,47198,2,12/",
@@ -383,25 +383,25 @@ class Bai2FileWriterTestCase(TestCase):
                 "01,CITIDIRECT,8888888,150715,2340,00131100,,,2/",
                 "02,8888888,CITIGB00,1,150715,2340,GBP,2/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS",
-                "88, BILLS BILLS BILLS BILLS BILLS BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
+                "88, BILLS",
                 "16,399,1000,0,,,OTHER",
                 "49,23599,5/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS",
-                "88, BILLS BILLS BILLS BILLS BILLS BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
+                "88, BILLS",
                 "16,399,1000,0,,,OTHER",
                 "49,23599,5/",
                 "98,47198,2,12/",
                 "02,8888888,CITIGB00,1,150715,2340,GBP,2/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS",
-                "88, BILLS BILLS BILLS BILLS BILLS BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
+                "88, BILLS",
                 "16,399,1000,0,,,OTHER",
                 "49,23599,5/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS",
-                "88, BILLS BILLS BILLS BILLS BILLS BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
+                "88, BILLS",
                 "16,399,1000,0,,,OTHER",
                 "49,23599,5/",
                 "98,47198,2,12/",
