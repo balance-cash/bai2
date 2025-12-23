@@ -2,24 +2,45 @@ import datetime
 from collections import OrderedDict
 from unittest import TestCase, mock
 
-from bai2.constants import TypeCodes, TypeCode, TypeCodeLevel, TypeCodeTransaction, \
-    FundsType, GroupStatus, AsOfDateModifier
-from bai2.exceptions import ParsingException, \
-    NotSupportedYetException, IntegrityException
+from bai2.constants import (
+    AsOfDateModifier,
+    FundsType,
+    GroupStatus,
+    TypeCode,
+    TypeCodeLevel,
+    TypeCodes,
+    TypeCodeTransaction,
+)
+from bai2.exceptions import (
+    IntegrityException,
+    NotSupportedYetException,
+    ParsingException,
+)
 from bai2.helpers import IteratorHelper
-from bai2.models import \
-    Bai2File, Bai2FileHeader, Bai2FileTrailer, \
-    Group, GroupHeader, GroupTrailer, \
-    Account, AccountIdentifier, AccountTrailer, \
-    TransactionDetail
-from bai2.parsers import TransactionDetailParser, AccountParser, \
-    GroupParser, Bai2FileParser
+from bai2.models import (
+    Account,
+    AccountIdentifier,
+    AccountTrailer,
+    Bai2File,
+    Bai2FileHeader,
+    Bai2FileTrailer,
+    Group,
+    GroupHeader,
+    GroupTrailer,
+    TransactionDetail,
+)
+from bai2.parsers import (
+    AccountParser,
+    Bai2FileParser,
+    GroupParser,
+    TransactionDetailParser,
+)
 
 
 class TransactionDetailParserTestCase(TestCase):
     def test_parse(self):
         lines = [
-            '16,165,1500000,0,DD1620,,DEALER PAYMENTS',
+            "16,165,1500000,0,DD1620,,DEALER PAYMENTS",
         ]
 
         ii = IteratorHelper(lines)
@@ -27,44 +48,46 @@ class TransactionDetailParserTestCase(TestCase):
 
         transaction = parser.parse()
 
-        self.assertEqual(transaction.type_code, TypeCodes['165'])
+        self.assertEqual(transaction.type_code, TypeCodes["165"])
         self.assertEqual(transaction.amount, 1500000)
         self.assertEqual(transaction.funds_type, FundsType.immediate_availability)
-        self.assertEqual(transaction.bank_reference, 'DD1620')
+        self.assertEqual(transaction.bank_reference, "DD1620")
         self.assertEqual(transaction.customer_reference, None)
         self.assertEqual(
             transaction.text,
-            'DEALER PAYMENTS',
+            "DEALER PAYMENTS",
         )
 
     def test_continuation_record(self):
         lines = [
-            '16,115,10000000,S,5000000,4000000,1000000/',
-            '88,AX13612,B096132,AMALGAMATED CORP. LOCKBOX',
-            '88,DEPOSIT-MISC. RECEIVABLES',
+            "16,115,10000000,S,5000000,4000000,1000000/",
+            "88,AX13612,B096132,AMALGAMATED CORP. LOCKBOX",
+            "88,DEPOSIT-MISC. RECEIVABLES",
         ]
 
         parser = TransactionDetailParser(IteratorHelper(lines))
 
         transaction = parser.parse()
 
-        self.assertEqual(transaction.type_code, TypeCodes['115'])
+        self.assertEqual(transaction.type_code, TypeCodes["115"])
         self.assertEqual(transaction.amount, 10000000)
-        self.assertEqual(transaction.funds_type, FundsType.distributed_availability_simple)
+        self.assertEqual(
+            transaction.funds_type, FundsType.distributed_availability_simple
+        )
         self.assertEqual(
             transaction.availability,
-            OrderedDict([('0', 5000000), ('1', 4000000), ('>1', 1000000)]),
+            OrderedDict([("0", 5000000), ("1", 4000000), (">1", 1000000)]),
         )
-        self.assertEqual(transaction.bank_reference, 'AX13612')
-        self.assertEqual(transaction.customer_reference, 'B096132')
+        self.assertEqual(transaction.bank_reference, "AX13612")
+        self.assertEqual(transaction.customer_reference, "B096132")
         self.assertEqual(
             transaction.text,
-            'AMALGAMATED CORP. LOCKBOX DEPOSIT-MISC. RECEIVABLES',
+            "AMALGAMATED CORP. LOCKBOX DEPOSIT-MISC. RECEIVABLES",
         )
 
     def test_unknown_availability(self):
         lines = [
-            '16,165,1500000,Z,DD1620,,DEALER PAYMENTS',
+            "16,165,1500000,Z,DD1620,,DEALER PAYMENTS",
         ]
 
         ii = IteratorHelper(lines)
@@ -72,27 +95,27 @@ class TransactionDetailParserTestCase(TestCase):
 
         transaction = parser.parse()
 
-        self.assertEqual(transaction.type_code, TypeCodes['165'])
+        self.assertEqual(transaction.type_code, TypeCodes["165"])
         self.assertEqual(transaction.amount, 1500000)
         self.assertEqual(transaction.funds_type, FundsType.unknown_availability)
         self.assertEqual(transaction.availability, None)
-        self.assertEqual(transaction.bank_reference, 'DD1620')
+        self.assertEqual(transaction.bank_reference, "DD1620")
         self.assertEqual(transaction.customer_reference, None)
         self.assertEqual(
             transaction.text,
-            'DEALER PAYMENTS',
+            "DEALER PAYMENTS",
         )
 
     def test_value_dated_availability(self):
         lines = [
-            '16,191,001,V,150715,2340,1234567890,RP12312312312312/',
-            '88,FR:FP SIP INCOMING',
-            '88,ENDT:20150715',
-            '88,TRID:RP12312312312312',
-            '88,PY:RP1231231231231200                 A1234BC 22/03/66',
-            '88,BI:22222222',
-            '88,OB:111111 BUCKINGHAM PALACE OB3:BARCLAYS BANK PLC',
-            '88,BO:11111111 BO1:DOE JO',
+            "16,191,001,V,150715,2340,1234567890,RP12312312312312/",
+            "88,FR:FP SIP INCOMING",
+            "88,ENDT:20150715",
+            "88,TRID:RP12312312312312",
+            "88,PY:RP1231231231231200                 A1234BC 22/03/66",
+            "88,BI:22222222",
+            "88,OB:111111 BUCKINGHAM PALACE OB3:BARCLAYS BANK PLC",
+            "88,BO:11111111 BO1:DOE JO",
         ]
 
         parser = TransactionDetailParser(IteratorHelper(lines))
@@ -101,47 +124,49 @@ class TransactionDetailParserTestCase(TestCase):
 
         self.assertEqual(transaction.funds_type, FundsType.value_dated)
         self.assertEqual(
-            transaction.availability['date'],
+            transaction.availability["date"],
             datetime.date(day=15, month=7, year=2015),
         )
         self.assertEqual(
-            transaction.availability['time'],
+            transaction.availability["time"],
             datetime.time(hour=23, minute=40),
         )
 
     def test_distributed_availability_simple(self):
         lines = [
-            '16,191,005,S,001,003,001,1234567890,RP12312312312312/',
-            '88,FR:FP SIP INCOMING',
-            '88,ENDT:20150715',
-            '88,TRID:RP12312312312312',
-            '88,PY:RP1231231231231200                 A1234BC 22/03/66',
-            '88,BI:22222222',
-            '88,OB:111111 BUCKINGHAM PALACE OB3:BARCLAYS BANK PLC',
-            '88,BO:11111111 BO1:DOE JO',
+            "16,191,005,S,001,003,001,1234567890,RP12312312312312/",
+            "88,FR:FP SIP INCOMING",
+            "88,ENDT:20150715",
+            "88,TRID:RP12312312312312",
+            "88,PY:RP1231231231231200                 A1234BC 22/03/66",
+            "88,BI:22222222",
+            "88,OB:111111 BUCKINGHAM PALACE OB3:BARCLAYS BANK PLC",
+            "88,BO:11111111 BO1:DOE JO",
         ]
 
         parser = TransactionDetailParser(IteratorHelper(lines))
 
         transaction = parser.parse()
 
-        self.assertEqual(transaction.funds_type, FundsType.distributed_availability_simple)
+        self.assertEqual(
+            transaction.funds_type, FundsType.distributed_availability_simple
+        )
         self.assertEqual(transaction.amount, 5)
         self.assertEqual(
             transaction.availability,
-            OrderedDict([('0', 1), ('1', 3), ('>1', 1)]),
+            OrderedDict([("0", 1), ("1", 3), (">1", 1)]),
         )
 
     def test_distributed_availability(self):
         lines = [
-            '16,191,005,D,2,1,001,2,004,1234567890,RP12312312312312/',
-            '88,FR:FP SIP INCOMING',
-            '88,ENDT:20150715',
-            '88,TRID:RP12312312312312',
-            '88,PY:RP1231231231231200                 A1234BC 22/03/66',
-            '88,BI:22222222',
-            '88,OB:111111 BUCKINGHAM PALACE OB3:BARCLAYS BANK PLC',
-            '88,BO:11111111 BO1:DOE JO',
+            "16,191,005,D,2,1,001,2,004,1234567890,RP12312312312312/",
+            "88,FR:FP SIP INCOMING",
+            "88,ENDT:20150715",
+            "88,TRID:RP12312312312312",
+            "88,PY:RP1231231231231200                 A1234BC 22/03/66",
+            "88,BI:22222222",
+            "88,OB:111111 BUCKINGHAM PALACE OB3:BARCLAYS BANK PLC",
+            "88,BO:11111111 BO1:DOE JO",
         ]
 
         parser = TransactionDetailParser(IteratorHelper(lines))
@@ -153,38 +178,38 @@ class TransactionDetailParserTestCase(TestCase):
 
         self.assertEqual(
             transaction.availability,
-            OrderedDict([('1', 1), ('2', 4)]),
+            OrderedDict([("1", 1), ("2", 4)]),
         )
 
     def test_real_time_payment_credit(self):
         lines = [
-            '16,158,4346722,,0,0/',
-            '88, ACC NUM:=12345;',
-            '88, SENDER BNK:=PNC; ',
-            '88, SENDER ID:=9876;',
-            '88, SENDER ACC NUM:=0123456789;',
-            '88, ORG ID:=null;',
-            '88, ORG:=Some ARCHITECT Company ;',
-            '88, ORG ADDRESS:=AUSTIN TX US 78731-4297 ;',
-            '88, ORIG FI ID:=00000096; ',
-            '88, ORG FI ADDRESS:=null;',
-            '88, BNF ID:=9999988;',
-            '88, BNF NAME:=Some LLC; ',
-            '88, BNF ADDRESS:= Boston MA US 02116 ;',
-            '88, REC FI:=SVB;',
-            '88, REC ID:=121140399;',
-            '88, OBI:=PO 123 Inv #789',
+            "16,158,4346722,,0,0/",
+            "88, ACC NUM:=12345;",
+            "88, SENDER BNK:=PNC; ",
+            "88, SENDER ID:=9876;",
+            "88, SENDER ACC NUM:=0123456789;",
+            "88, ORG ID:=null;",
+            "88, ORG:=Some ARCHITECT Company ;",
+            "88, ORG ADDRESS:=AUSTIN TX US 78731-4297 ;",
+            "88, ORIG FI ID:=00000096; ",
+            "88, ORG FI ADDRESS:=null;",
+            "88, BNF ID:=9999988;",
+            "88, BNF NAME:=Some LLC; ",
+            "88, BNF ADDRESS:= Boston MA US 02116 ;",
+            "88, REC FI:=SVB;",
+            "88, REC ID:=121140399;",
+            "88, OBI:=PO 123 Inv #789",
         ]
 
         parser = TransactionDetailParser(IteratorHelper(lines))
         transaction = parser.parse()
-        self.assertEqual(transaction.type_code.code, '158')
+        self.assertEqual(transaction.type_code.code, "158")
         self.assertEqual(transaction.amount, 4346722)
         self.assertEqual(len(transaction.rows), 16)
 
     def test_unsupported_type_code_should_raise_unsupported_exception(self):
         lines = [
-            '16,299,1500000,1,DD1620,,DEALER PAYMENTS',
+            "16,299,1500000,1,DD1620,,DEALER PAYMENTS",
         ]
 
         parser = TransactionDetailParser(IteratorHelper(lines))
@@ -195,34 +220,45 @@ class TransactionDetailParserTestCase(TestCase):
         Simulate adding a custom type code:
 
         ```python
-        TypeCodes['299'] = TypeCode('299', TypeCodeTransaction.credit, TypeCodeLevel.detail, 'Custom transaction')
+        TypeCodes['299'] = TypeCode('299', TypeCodeTransaction.credit, TypeCodeLevel.detail, 'Custom transaction') # noqa: B950
         ```
         """
 
         lines = [
-            '16,299,1500000,1,DD1620,,DEALER PAYMENTS',
+            "16,299,1500000,1,DD1620,,DEALER PAYMENTS",
         ]
 
-        with mock.patch.dict(TypeCodes, [
-            ('299', TypeCode('299', TypeCodeTransaction.credit, TypeCodeLevel.detail, 'Custom transaction')),
-        ]):
+        with mock.patch.dict(
+            TypeCodes,
+            [
+                (
+                    "299",
+                    TypeCode(
+                        "299",
+                        TypeCodeTransaction.credit,
+                        TypeCodeLevel.detail,
+                        "Custom transaction",
+                    ),
+                ),
+            ],
+        ):
             parser = TransactionDetailParser(IteratorHelper(lines))
             transaction = parser.parse()
 
-        self.assertEqual(transaction.type_code.code, '299')
+        self.assertEqual(transaction.type_code.code, "299")
         self.assertEqual(transaction.amount, 1500000)
-        self.assertEqual(transaction.bank_reference, 'DD1620')
+        self.assertEqual(transaction.bank_reference, "DD1620")
         self.assertEqual(transaction.customer_reference, None)
-        self.assertEqual(transaction.text, 'DEALER PAYMENTS')
+        self.assertEqual(transaction.text, "DEALER PAYMENTS")
 
 
 class AccountParserTestCase(TestCase):
     def test_parse(self):
         lines = [
-            '03,0975312468,GBP,010,4764927,,,015,4626045,,,022,0,,,040,4626045,,/',
-            '88,045,4626045,,,072,0,,,074,0,,,076,0,,,100,0,,,400,138882,,/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,20281944,4/',
+            "03,0975312468,GBP,010,4764927,,,015,4626045,,,022,0,,,040,4626045,,/",
+            "88,045,4626045,,,072,0,,,074,0,,,076,0,,,100,0,,,400,138882,,/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,20281944,4/",
         ]
 
         parser = AccountParser(IteratorHelper(lines))
@@ -230,8 +266,8 @@ class AccountParserTestCase(TestCase):
         account = parser.parse()
 
         header = account.header
-        self.assertEqual(header.customer_account_number, '0975312468')
-        self.assertEqual(header.currency, 'GBP')
+        self.assertEqual(header.customer_account_number, "0975312468")
+        self.assertEqual(header.currency, "GBP")
 
         trailer = account.trailer
         self.assertEqual(trailer.account_control_total, 20281944)
@@ -241,10 +277,10 @@ class AccountParserTestCase(TestCase):
 
     def test_parse_with_different_continuation(self):
         lines = [
-            '03,0975312468,GBP,010,4764927,,,015,4626045,,,022,0,,,040,4626045,,,/',
-            '88,045,4626045,,,072,0,,,074,0,,,076,0,,,100,0,,,400,138882,,/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,20281944,4/',
+            "03,0975312468,GBP,010,4764927,,,015,4626045,,,022,0,,,040,4626045,,,/",
+            "88,045,4626045,,,072,0,,,074,0,,,076,0,,,100,0,,,400,138882,,/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,20281944,4/",
         ]
 
         parser = AccountParser(IteratorHelper(lines))
@@ -252,8 +288,8 @@ class AccountParserTestCase(TestCase):
         account = parser.parse()
 
         header = account.header
-        self.assertEqual(header.customer_account_number, '0975312468')
-        self.assertEqual(header.currency, 'GBP')
+        self.assertEqual(header.customer_account_number, "0975312468")
+        self.assertEqual(header.currency, "GBP")
 
         trailer = account.trailer
         self.assertEqual(trailer.account_control_total, 20281944)
@@ -263,22 +299,22 @@ class AccountParserTestCase(TestCase):
 
     def test_parse_with_multiple_continuation(self):
         lines = [
-            '03,0975312468,USD,,,,/',
-            '88,010,24855219,,/',
-            '88,015,23827278,,/',
-            '88,040,24855219,,/',
-            '88,045,23827278,,/',
-            '88,050,9339141,,/',
-            '88,055,15513272,,/',
-            '88,056,0,,/',
-            '88,072,0,,/',
-            '88,074,0,,/',
-            '88,075,0,,/',
-            '88,076,0,,/',
-            '88,100,106255,4,/',
-            '88,400,1134196,8,/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,124957858,16/',
+            "03,0975312468,USD,,,,/",
+            "88,010,24855219,,/",
+            "88,015,23827278,,/",
+            "88,040,24855219,,/",
+            "88,045,23827278,,/",
+            "88,050,9339141,,/",
+            "88,055,15513272,,/",
+            "88,056,0,,/",
+            "88,072,0,,/",
+            "88,074,0,,/",
+            "88,075,0,,/",
+            "88,076,0,,/",
+            "88,100,106255,4,/",
+            "88,400,1134196,8,/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,124957858,16/",
         ]
 
         parser = AccountParser(IteratorHelper(lines))
@@ -286,8 +322,8 @@ class AccountParserTestCase(TestCase):
         account = parser.parse()
 
         header = account.header
-        self.assertEqual(header.customer_account_number, '0975312468')
-        self.assertEqual(header.currency, 'USD')
+        self.assertEqual(header.customer_account_number, "0975312468")
+        self.assertEqual(header.currency, "USD")
 
         trailer = account.trailer
         self.assertEqual(trailer.account_control_total, 124957858)
@@ -297,8 +333,8 @@ class AccountParserTestCase(TestCase):
 
     def test_parse_without_transactions(self):
         lines = [
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '49,70500000,2/',
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "49,70500000,2/",
         ]
 
         parser = AccountParser(IteratorHelper(lines))
@@ -309,12 +345,12 @@ class AccountParserTestCase(TestCase):
 
     def test_parse_with_multiple_transactions(self):
         lines = [
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '16,115,10000000,S,5000000,4000000,1000000/',
-            '88,AX13612,B096132,AMALGAMATED CORP. LOCKBOX',
-            '88,DEPOSIT-MISC. RECEIVABLES',
-            '49,82000000,6/',
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "16,115,10000000,S,5000000,4000000,1000000/",
+            "88,AX13612,B096132,AMALGAMATED CORP. LOCKBOX",
+            "88,DEPOSIT-MISC. RECEIVABLES",
+            "49,82000000,6/",
         ]
 
         parser = AccountParser(IteratorHelper(lines))
@@ -325,7 +361,7 @@ class AccountParserTestCase(TestCase):
 
     def test_fails_without_trailer(self):
         lines = [
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
         ]
 
         parser = AccountParser(IteratorHelper(lines))
@@ -336,9 +372,9 @@ class AccountParserTestCase(TestCase):
         Number of records == 4 when it should be 3.
         """
         lines = [
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,4/',
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,4/",
         ]
 
         parser = AccountParser(IteratorHelper(lines))
@@ -349,9 +385,9 @@ class AccountParserTestCase(TestCase):
         Account Control Total == 72000001 when it should be 72000000.
         """
         lines = [
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000001,3/',
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000001,3/",
         ]
 
         parser = AccountParser(IteratorHelper(lines))
@@ -363,9 +399,9 @@ class AccountParserTestCase(TestCase):
         are not performed.
         """
         lines = [
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000001,3/',
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000001,3/",
         ]
 
         parser = AccountParser(IteratorHelper(lines), check_integrity=False)
@@ -376,11 +412,11 @@ class AccountParserTestCase(TestCase):
 class GroupParserTestCase(TestCase):
     def test_parse(self):
         lines = [
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '98,72000000,1,5/',
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000000,1,5/",
         ]
 
         parser = GroupParser(IteratorHelper(lines))
@@ -388,13 +424,15 @@ class GroupParserTestCase(TestCase):
         group = parser.parse()
 
         header = group.header
-        self.assertEqual(header.ultimate_receiver_id, '031001234')
-        self.assertEqual(header.originator_id, '122099999')
+        self.assertEqual(header.ultimate_receiver_id, "031001234")
+        self.assertEqual(header.originator_id, "122099999")
         self.assertEqual(header.group_status, GroupStatus.update)
         self.assertEqual(header.as_of_date, datetime.date(year=2004, month=6, day=20))
         self.assertEqual(header.as_of_time, datetime.time(hour=23, minute=59))
-        self.assertEqual(header.currency, 'GBP')
-        self.assertEqual(header.as_of_date_modifier, AsOfDateModifier.final_previous_day)
+        self.assertEqual(header.currency, "GBP")
+        self.assertEqual(
+            header.as_of_date_modifier, AsOfDateModifier.final_previous_day
+        )
 
         trailer = group.trailer
         self.assertEqual(trailer.group_control_total, 72000000)
@@ -409,11 +447,11 @@ class GroupParserTestCase(TestCase):
         """
 
         lines = [
-            '02,031001234,122099999,1,040620,2359,,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '98,72000000,1,5/',
+            "02,031001234,122099999,1,040620,2359,,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000000,1,5/",
         ]
 
         parser = GroupParser(IteratorHelper(lines))
@@ -421,17 +459,17 @@ class GroupParserTestCase(TestCase):
         group = parser.parse()
 
         header = group.header
-        self.assertEqual(header.currency, 'USD')
+        self.assertEqual(header.currency, "USD")
 
     def test_multiple_accounts(self):
         lines = [
-            '02,031001234,122099999,1,040620,2359,,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '03,0975312469,GBP,010,100,,/',
-            '49,100,2/',
-            '98,72000100,2,7/',
+            "02,031001234,122099999,1,040620,2359,,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "03,0975312469,GBP,010,100,,/",
+            "49,100,2/",
+            "98,72000100,2,7/",
         ]
 
         parser = GroupParser(IteratorHelper(lines))
@@ -447,8 +485,8 @@ class GroupParserTestCase(TestCase):
 
     def test_fails_if_no_accounts_found(self):
         lines = [
-            '02,031001234,122099999,1,040620,2359,,2/',
-            '98,11800000,0,2/',
+            "02,031001234,122099999,1,040620,2359,,2/",
+            "98,11800000,0,2/",
         ]
 
         parser = GroupParser(IteratorHelper(lines))
@@ -456,7 +494,7 @@ class GroupParserTestCase(TestCase):
 
     def test_fails_without_trailer(self):
         lines = [
-            '02,031001234,122099999,1,040620,2359,,2/',
+            "02,031001234,122099999,1,040620,2359,,2/",
         ]
 
         parser = GroupParser(IteratorHelper(lines))
@@ -467,11 +505,11 @@ class GroupParserTestCase(TestCase):
         Number of records == 6 when it should be 5.
         """
         lines = [
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '98,72000000,1,6/',
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000000,1,6/",
         ]
 
         parser = GroupParser(IteratorHelper(lines))
@@ -482,11 +520,11 @@ class GroupParserTestCase(TestCase):
         Number of accounts == 4 when it should be 3.
         """
         lines = [
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,4/',
-            '98,72000000,1,5/',
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,4/",
+            "98,72000000,1,5/",
         ]
 
         parser = GroupParser(IteratorHelper(lines))
@@ -497,11 +535,11 @@ class GroupParserTestCase(TestCase):
         Group Control Total == 72000001 when it should be 72000000.
         """
         lines = [
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '98,72000001,1,5/',
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000001,1,5/",
         ]
 
         parser = GroupParser(IteratorHelper(lines))
@@ -513,11 +551,11 @@ class GroupParserTestCase(TestCase):
         are not performed.
         """
         lines = [
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '98,72000001,2,6/',
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000001,2,6/",
         ]
 
         parser = GroupParser(IteratorHelper(lines), check_integrity=False)
@@ -528,20 +566,20 @@ class GroupParserTestCase(TestCase):
 class Bai2FileParserTestCase(TestCase):
     def test_parse(self):
         lines = [
-            '01,CITIDIRECT,8888888,150716,0713,00131100,,,2/',
-            '02,8888888,CITIGB00,1,150715,2340,GBP,2/',
-            '03,77777777,GBP,010,10000,,,015,10000,,,/',
-            '16,191,001,V,150715,,1234567890,RP12312312312312/',
-            '88,FR:FP SIP INCOMING',
-            '88,ENDT:20150715',
-            '88,TRID:RP12312312312312',
-            '88,PY:RP1231231231231200                 A1234BC 22/03/66',
-            '88,BI:22222222',
-            '88,OB:111111 BUCKINGHAM PALACE OB3:BARCLAYS BANK PLC',
-            '88,BO:11111111 BO1:DOE JO',
-            '49,20001,10/',
-            '98,20001,1,12/',
-            '99,20001,1,14/',
+            "01,CITIDIRECT,8888888,150716,0713,00131100,,,2/",
+            "02,8888888,CITIGB00,1,150715,2340,GBP,2/",
+            "03,77777777,GBP,010,10000,,,015,10000,,,/",
+            "16,191,001,V,150715,,1234567890,RP12312312312312/",
+            "88,FR:FP SIP INCOMING",
+            "88,ENDT:20150715",
+            "88,TRID:RP12312312312312",
+            "88,PY:RP1231231231231200                 A1234BC 22/03/66",
+            "88,BI:22222222",
+            "88,OB:111111 BUCKINGHAM PALACE OB3:BARCLAYS BANK PLC",
+            "88,BO:11111111 BO1:DOE JO",
+            "49,20001,10/",
+            "98,20001,1,12/",
+            "99,20001,1,14/",
         ]
 
         parser = Bai2FileParser(IteratorHelper(lines))
@@ -556,11 +594,11 @@ class Bai2FileParserTestCase(TestCase):
         # BAI2 file header
         bai2_header = bai2_file.header
         self.assertTrue(isinstance(bai2_header, Bai2FileHeader))
-        self.assertEqual(bai2_header.sender_id, 'CITIDIRECT')
-        self.assertEqual(bai2_header.receiver_id, '8888888')
+        self.assertEqual(bai2_header.sender_id, "CITIDIRECT")
+        self.assertEqual(bai2_header.receiver_id, "8888888")
         self.assertEqual(bai2_header.creation_date, july_16_2015)
         self.assertEqual(bai2_header.creation_time, datetime.time(hour=7, minute=13))
-        self.assertEqual(bai2_header.file_id, '00131100')
+        self.assertEqual(bai2_header.file_id, "00131100")
         self.assertEqual(bai2_header.physical_record_length, None)
         self.assertEqual(bai2_header.block_size, None)
         self.assertEqual(bai2_header.version_number, 2)
@@ -582,13 +620,15 @@ class Bai2FileParserTestCase(TestCase):
 
         group_header = group.header
         self.assertTrue(isinstance(group_header, GroupHeader))
-        self.assertEqual(group_header.ultimate_receiver_id, '8888888')
-        self.assertEqual(group_header.originator_id, 'CITIGB00')
+        self.assertEqual(group_header.ultimate_receiver_id, "8888888")
+        self.assertEqual(group_header.originator_id, "CITIGB00")
         self.assertEqual(group_header.group_status, GroupStatus.update)
         self.assertEqual(group_header.as_of_date, july_15_2015)
         self.assertEqual(group_header.as_of_time, datetime.time(hour=23, minute=40))
-        self.assertEqual(group_header.currency, 'GBP')
-        self.assertEqual(group_header.as_of_date_modifier, AsOfDateModifier.final_previous_day)
+        self.assertEqual(group_header.currency, "GBP")
+        self.assertEqual(
+            group_header.as_of_date_modifier, AsOfDateModifier.final_previous_day
+        )
 
         # Group Trailer
 
@@ -608,8 +648,8 @@ class Bai2FileParserTestCase(TestCase):
 
         account_identifier = account.header
         self.assertTrue(isinstance(account_identifier, AccountIdentifier))
-        self.assertEqual(account_identifier.customer_account_number, '77777777')
-        self.assertEqual(account_identifier.currency, 'GBP')
+        self.assertEqual(account_identifier.customer_account_number, "77777777")
+        self.assertEqual(account_identifier.currency, "GBP")
 
         # Account Trailer
 
@@ -623,22 +663,22 @@ class Bai2FileParserTestCase(TestCase):
         self.assertEqual(len(account.children), 1)
         transaction = account.children[0]
         self.assertTrue(isinstance(transaction, TransactionDetail))
-        self.assertEqual(transaction.type_code, TypeCodes['191'])
+        self.assertEqual(transaction.type_code, TypeCodes["191"])
         self.assertEqual(transaction.amount, 1)
         self.assertEqual(transaction.funds_type, FundsType.value_dated)
-        self.assertEqual(transaction.availability['date'], july_15_2015)
-        self.assertEqual(transaction.availability['time'], None)
-        self.assertEqual(transaction.bank_reference, '1234567890')
-        self.assertEqual(transaction.customer_reference, 'RP12312312312312')
+        self.assertEqual(transaction.availability["date"], july_15_2015)
+        self.assertEqual(transaction.availability["time"], None)
+        self.assertEqual(transaction.bank_reference, "1234567890")
+        self.assertEqual(transaction.customer_reference, "RP12312312312312")
         self.assertEqual(
             transaction.text,
-            'FR:FP SIP INCOMING '
-            'ENDT:20150715 '
-            'TRID:RP12312312312312 '
-            'PY:RP1231231231231200                 A1234BC 22/03/66 '
-            'BI:22222222 '
-            'OB:111111 BUCKINGHAM PALACE OB3:BARCLAYS BANK PLC '
-            'BO:11111111 BO1:DOE JO',
+            "FR:FP SIP INCOMING "
+            "ENDT:20150715 "
+            "TRID:RP12312312312312 "
+            "PY:RP1231231231231200                 A1234BC 22/03/66 "
+            "BI:22222222 "
+            "OB:111111 BUCKINGHAM PALACE OB3:BARCLAYS BANK PLC "
+            "BO:11111111 BO1:DOE JO",
         )
 
     def test_only_version_2_supported(self):
@@ -646,13 +686,13 @@ class Bai2FileParserTestCase(TestCase):
         Checks that BAI version 2 is supported.
         """
         lines = [
-            '01,122099999,123456789,040621,0200,1,,,1/',
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,18650000,3/',
-            '98,18650000,1,5/',
-            '99,18650000,1,7/',
+            "01,122099999,123456789,040621,0200,1,,,1/",
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,18650000,3/",
+            "98,18650000,1,5/",
+            "99,18650000,1,7/",
         ]
 
         parser = Bai2FileParser(IteratorHelper(lines))
@@ -661,17 +701,17 @@ class Bai2FileParserTestCase(TestCase):
 
     def test_multiple_groups(self):
         lines = [
-            '01,122099999,123456789,040621,0200,1,,,2/',
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '98,72000000,1,5/',
-            '02,031001233,122099998,1,040620,2359,GBP,2/',
-            '03,0975312469,GBP,010,100,,/',
-            '49,100,2/',
-            '98,100,1,4/',
-            '99,72000100,2,11/',
+            "01,122099999,123456789,040621,0200,1,,,2/",
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000000,1,5/",
+            "02,031001233,122099998,1,040620,2359,GBP,2/",
+            "03,0975312469,GBP,010,100,,/",
+            "49,100,2/",
+            "98,100,1,4/",
+            "99,72000100,2,11/",
         ]
 
         parser = Bai2FileParser(IteratorHelper(lines))
@@ -686,8 +726,8 @@ class Bai2FileParserTestCase(TestCase):
 
     def test_fails_if_no_groups_found(self):
         lines = [
-            '01,122099999,123456789,040621,0200,1,,,2/',
-            '99,1215450000,0,2/',
+            "01,122099999,123456789,040621,0200,1,,,2/",
+            "99,1215450000,0,2/",
         ]
 
         parser = Bai2FileParser(IteratorHelper(lines))
@@ -695,7 +735,7 @@ class Bai2FileParserTestCase(TestCase):
 
     def test_fails_without_trailer(self):
         lines = [
-            '01,122099999,123456789,040621,0200,1,,,2/',
+            "01,122099999,123456789,040621,0200,1,,,2/",
         ]
 
         parser = Bai2FileParser(IteratorHelper(lines))
@@ -706,13 +746,13 @@ class Bai2FileParserTestCase(TestCase):
         Number of records == 8 when it should be 7.
         """
         lines = [
-            '01,122099999,123456789,040621,0200,1,,,2/',
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '98,72000000,1,5/',
-            '99,72000000,1,8/',
+            "01,122099999,123456789,040621,0200,1,,,2/",
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000000,1,5/",
+            "99,72000000,1,8/",
         ]
 
         parser = Bai2FileParser(IteratorHelper(lines))
@@ -723,13 +763,13 @@ class Bai2FileParserTestCase(TestCase):
         Number of groups == 2 when it should be 1.
         """
         lines = [
-            '01,122099999,123456789,040621,0200,1,,,2/',
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '98,72000000,1,5/',
-            '99,72000000,2,7/',
+            "01,122099999,123456789,040621,0200,1,,,2/",
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000000,1,5/",
+            "99,72000000,2,7/",
         ]
 
         parser = Bai2FileParser(IteratorHelper(lines))
@@ -740,13 +780,13 @@ class Bai2FileParserTestCase(TestCase):
         File Control Total == 72000001 when it should be 72000000.
         """
         lines = [
-            '01,122099999,123456789,040621,0200,1,,,2/',
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '98,72000000,1,5/',
-            '99,72000001,1,7/',
+            "01,122099999,123456789,040621,0200,1,,,2/",
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000000,1,5/",
+            "99,72000001,1,7/",
         ]
 
         parser = Bai2FileParser(IteratorHelper(lines))
@@ -758,13 +798,13 @@ class Bai2FileParserTestCase(TestCase):
         are not performed.
         """
         lines = [
-            '01,122099999,123456789,040621,0200,1,,,2/',
-            '02,031001234,122099999,1,040620,2359,GBP,2/',
-            '03,0975312468,GBP,010,500000,,,190,70000000,4,0/',
-            '16,165,1500000,1,DD1620,, DEALER PAYMENTS',
-            '49,72000000,3/',
-            '98,72000000,1,5/',
-            '99,72000001,2,8/',
+            "01,122099999,123456789,040621,0200,1,,,2/",
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000000,1,5/",
+            "99,72000001,2,8/",
         ]
 
         parser = Bai2FileParser(IteratorHelper(lines), check_integrity=False)
