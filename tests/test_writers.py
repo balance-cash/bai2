@@ -338,8 +338,8 @@ class GroupWriterTestCase(TestCase):
             [
                 "02,8888888,CITIGB00,1,150715,2340,GBP,2/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS",
-                "88, BILLS BILLS BILLS BILLS BILLS BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
+                "88, BILLS",
                 "16,399,1000,0,,,OTHER",
                 "49,23599,5/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
