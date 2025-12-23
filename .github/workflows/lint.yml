@@ -1,5 +1,5 @@
 name: Lint code
-on: [push]
+on: push
 jobs:
   lint:
     name: Lint code
