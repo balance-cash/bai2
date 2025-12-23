@@ -14,6 +14,7 @@ jobs:
         run: |
           pip install -r requirements-release.txt
           pip install -r requirements-lint.txt
+          pip install pre-commit
       - name: Lint code with flake8
         run: pre-commit run --all-files
       - name: Run tests
