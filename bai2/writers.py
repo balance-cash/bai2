@@ -1,21 +1,35 @@
 from collections import OrderedDict
 
 from .constants import CONTINUATION_CODE
-from .models import \
-    Bai2File, Bai2FileHeader, Bai2FileTrailer, \
-    Group, GroupHeader, GroupTrailer, \
-    AccountIdentifier, AccountTrailer, Account, \
-    TransactionDetail
-from .utils import write_date, write_time, convert_to_string
+from .models import (
+    Account,
+    AccountIdentifier,
+    AccountTrailer,
+    Bai2File,
+    Bai2FileHeader,
+    Bai2FileTrailer,
+    Group,
+    GroupHeader,
+    GroupTrailer,
+    TransactionDetail,
+)
+from .utils import convert_to_string, write_date, write_time
 
 
 class BaseWriter:
-    def __init__(self, obj, line_length=80, text_on_new_line=False, clock_format_for_intra_day=False):
+    def __init__(
+        self,
+        obj,
+        line_length=80,
+        text_on_new_line=False,
+        clock_format_for_intra_day=False,
+    ):
         """
         Keyword arguments:
         line_length -- number of characters per record (default 80)
         text_on_new_line -- whether to begin a text field in a new record (default False)
-        clock_format_for_intra_day -- use HH:MM:SS instead of HHMM for intra-day times (default False)
+        clock_format_for_intra_day
+            -- use HH:MM:SS instead of HHMM for intra-day times (default False)
         """
         self.obj = obj
         self.line_length = line_length
@@ -69,13 +83,13 @@ class BaseSingleWriter(BaseWriter):
         return fields
 
     def write(self):
-        record = ''
+        record = ""
         fields = self._write_fields_from_config(self.fields_config)
 
         record += self.model.code.value
         for field_name in fields:
-            record += ',' + fields[field_name]
-        record += '/'
+            record += "," + fields[field_name]
+        record += "/"
 
         return [record]
 
@@ -84,19 +98,22 @@ def expand_availability(writer, availability):
     fields = OrderedDict()
     if len(availability) == 0:
         pass
-    elif list(availability.keys()) in [['0', '1', '>1'], ['date', 'time']]:
+    elif list(availability.keys()) in [["0", "1", ">1"], ["date", "time"]]:
         for field, value in availability.items():
-            if field == 'date':
+            if field == "date":
                 value = write_date(value) if value else None
-            elif field == 'time':
-                value = (write_time(value, writer.clock_format_for_intra_day)
-                         if value else None)
+            elif field == "time":
+                value = (
+                    write_time(value, writer.clock_format_for_intra_day)
+                    if value
+                    else None
+                )
             fields[field] = convert_to_string(value)
     else:
-        fields['distribution_length'] = str(len(availability))
+        fields["distribution_length"] = str(len(availability))
         for field, value in availability.items():
-            fields['day_%s' % str(field)] = convert_to_string(field)
-            fields['amount_%s' % str(field)] = convert_to_string(value)
+            fields["day_%s" % str(field)] = convert_to_string(field)
+            fields["amount_%s" % str(field)] = convert_to_string(value)
     return fields
 
 
@@ -104,26 +121,26 @@ class TransactionDetailWriter(BaseSingleWriter):
     model = TransactionDetail
 
     fields_config = [
-        ('type_code', lambda w, tc: tc.code),
-        'amount',
-        ('funds_type', lambda w, ft: ft.value),
-        ('availability', expand_availability),
-        'bank_reference',
-        'customer_reference',
-        'text',
+        ("type_code", lambda w, tc: tc.code),
+        "amount",
+        ("funds_type", lambda w, ft: ft.value),
+        ("availability", expand_availability),
+        "bank_reference",
+        "customer_reference",
+        "text",
     ]
 
     def write(self):
-        records = ['']
+        records = [""]
         fields = self._write_fields_from_config(self.fields_config)
 
         i = 0
         records[i] += self.model.code.value
         for field_name in fields:
-            if field_name == 'text' and self.obj.text:
+            if field_name == "text" and self.obj.text:
                 text_cursor = 0
                 if self.text_on_new_line:
-                    records[i] += '/'
+                    records[i] += "/"
                     records.append(CONTINUATION_CODE)
                     i += 1
 
@@ -133,13 +150,13 @@ class TransactionDetailWriter(BaseSingleWriter):
 
                     if remaining_line_length > 0:
                         end_index = text_cursor + remaining_line_length
-                        records[i] += ',' + self.obj.text[text_cursor:end_index]
+                        records[i] += "," + self.obj.text[text_cursor:end_index]
                         text_cursor = end_index
                     else:
                         records.append(CONTINUATION_CODE)
                         i += 1
             else:
-                records[i] += ',' + fields[field_name]
+                records[i] += "," + fields[field_name]
 
         return records
 
@@ -154,15 +171,16 @@ def expand_summary_items(writer, summary_items):
 
             summary_field_name, write_func = summary_field_config
             field_value = getattr(summary_item, summary_field_name, None)
-            output = (write_func(writer, field_value)
-                      if field_value is not None else None)
+            output = (
+                write_func(writer, field_value) if field_value is not None else None
+            )
 
             if isinstance(output, dict):
-                items.update(OrderedDict(
-                    [('%s_%s' % (k, n), v) for k, v in output.items()]
-                ))
+                items.update(
+                    OrderedDict([("%s_%s" % (k, n), v) for k, v in output.items()])
+                )
             else:
-                items['%s_%s' % (summary_field_name, n)] = convert_to_string(output)
+                items["%s_%s" % (summary_field_name, n)] = convert_to_string(output)
     return items
 
 
@@ -170,21 +188,21 @@ class AccountIdentifierWriter(BaseSingleWriter):
     model = AccountIdentifier
 
     fields_config = [
-        'customer_account_number',
-        'currency',
-        ('summary_items', expand_summary_items),
+        "customer_account_number",
+        "currency",
+        ("summary_items", expand_summary_items),
     ]
 
     summary_fields_config = [
-        ('type_code', lambda w, tc: tc.code),
-        'amount',
-        'item_count',
-        ('funds_type', lambda w, ft: ft.value),
-        ('availability', expand_availability),
+        ("type_code", lambda w, tc: tc.code),
+        "amount",
+        "item_count",
+        ("funds_type", lambda w, ft: ft.value),
+        ("availability", expand_availability),
     ]
 
     def write(self):
-        records = ['']
+        records = [""]
         fields = self._write_fields_from_config(self.fields_config)
 
         i = 0
@@ -192,11 +210,11 @@ class AccountIdentifierWriter(BaseSingleWriter):
         for field_name in fields:
             field_length = len(fields[field_name]) + 2
             if (len(records[i]) + field_length) >= self.line_length:
-                records[i] += '/'
+                records[i] += "/"
                 records.append(CONTINUATION_CODE)
                 i += 1
-            records[i] += ',' + fields[field_name]
-        records[i] += '/'
+            records[i] += "," + fields[field_name]
+        records[i] += "/"
         return records
 
 
@@ -204,8 +222,8 @@ class AccountTrailerWriter(BaseSingleWriter):
     model = AccountTrailer
 
     fields_config = [
-        'account_control_total',
-        'number_of_records',
+        "account_control_total",
+        "number_of_records",
     ]
 
 
@@ -220,13 +238,13 @@ class GroupHeaderWriter(BaseSingleWriter):
     model = GroupHeader
 
     fields_config = [
-        'ultimate_receiver_id',
-        'originator_id',
-        ('group_status', lambda w, gs: gs.value),
-        ('as_of_date', lambda w, d: write_date(d)),
-        ('as_of_time', lambda w, t: write_time(t, w.clock_format_for_intra_day)),
-        'currency',
-        ('as_of_date_modifier', lambda w, aodm: aodm.value),
+        "ultimate_receiver_id",
+        "originator_id",
+        ("group_status", lambda w, gs: gs.value),
+        ("as_of_date", lambda w, d: write_date(d)),
+        ("as_of_time", lambda w, t: write_time(t, w.clock_format_for_intra_day)),
+        "currency",
+        ("as_of_date_modifier", lambda w, aodm: aodm.value),
     ]
 
 
@@ -234,9 +252,9 @@ class GroupTrailerWriter(BaseSingleWriter):
     model = GroupTrailer
 
     fields_config = [
-        'group_control_total',
-        'number_of_accounts',
-        'number_of_records',
+        "group_control_total",
+        "number_of_accounts",
+        "number_of_records",
     ]
 
 
@@ -251,14 +269,14 @@ class Bai2FileHeaderWriter(BaseSingleWriter):
     model = Bai2FileHeader
 
     fields_config = (
-        'sender_id',
-        'receiver_id',
-        ('creation_date', lambda w, d: write_date(d)),
-        ('creation_time', lambda w, t: write_time(t, w.clock_format_for_intra_day)),
-        'file_id',
-        'physical_record_length',
-        'block_size',
-        'version_number',
+        "sender_id",
+        "receiver_id",
+        ("creation_date", lambda w, d: write_date(d)),
+        ("creation_time", lambda w, t: write_time(t, w.clock_format_for_intra_day)),
+        "file_id",
+        "physical_record_length",
+        "block_size",
+        "version_number",
     )
 
 
@@ -266,9 +284,9 @@ class Bai2FileTrailerWriter(BaseSingleWriter):
     model = Bai2FileTrailer
 
     fields_config = (
-        'file_control_total',
-        'number_of_groups',
-        'number_of_records',
+        "file_control_total",
+        "number_of_groups",
+        "number_of_records",
     )
 
 
