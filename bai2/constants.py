@@ -54,7 +54,7 @@ class TypeCodeLevel(Enum):
 TypeCode = namedtuple("TypeCode", ["code", "transaction", "level", "description"])
 TypeCodes = [
     # Dummy empty TypeCode so that we can skip transactions
-    # with these type codes for Farmers & Merchants Bank
+    # with these type codes if we want to ignore them
     TypeCode("", None, TypeCodeLevel.status, "Dummy Empty Type Code"),
     TypeCode("000", TypeCodeTransaction.credit, TypeCodeLevel.detail, "Type Code 000"),
     TypeCode("001", None, TypeCodeLevel.status, "Type Code 001"),
