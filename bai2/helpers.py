@@ -3,46 +3,50 @@ from .models import Record
 
 
 def _build_account_identifier_record(rows):
-    fields_str = ''
+    fields_str = ""  # noqa: F841
     for index, row in enumerate(rows):
-        record = row[0]
+        record = row[0]  # noqa: F841
         field_str = row[1]
-        commas_count = field_str.count(',')
-        # first row will have account identifier and currency (the common part of the account identifier)
-        # and then a multiple of 4 commas (the rest of the account identifier, which are summary components)
+        commas_count = field_str.count(",")  # noqa: F841
+        # first row will have account identifier and currency
+        # (the common part of the account identifier)
+        # and then a multiple of 4 commas (the rest of the account identifier,
+        # which are summary components)
         # the rest of the rows will have only the summary components
         summary_commas_count = commas_count - 2 if index == 0 else commas_count
 
         if field_str:
-            if field_str[-1] == '/':
+            if field_str[-1] == "/":  # noqa: F841
                 fields_str += field_str[:-1]
                 if summary_commas_count % 4 != 0:
-                    # if the number of commas is not a multiple of 4, then we need to add a comma
-                    # some banks emit this extra comma, some don't, so we need to normalize it
-                    fields_str += ','
-                elif fields_str[-1] != ',':
-                    # if the number of commas is multiple of 4 and the last character is
-                    # not a comma, then we need to add an extra comma
-                    fields_str += ','
+                    # if the number of commas is not a multiple of 4,
+                    # then we need to add a comma, some banks emit this
+                    # extra comma, some don't, so we need to normalize it
+                    fields_str += ","  # noqa: F841
+                elif fields_str[-1] != ",":  # noqa: F841
+                    # if the number of commas is multiple of 4 and the
+                    # last character is not a comma, then we need to add
+                    # an extra comma
+                    fields_str += ","  # noqa: F841
             else:
                 fields_str += field_str
 
-    fields = fields_str.split(',')
+    fields = fields_str.split(",")
     return Record(code=rows[0][0], fields=fields, rows=rows)
 
 
 def _build_generic_record(rows):
-    fields_str = ''
+    fields_str = ""  # noqa: F841
     for row in rows:
-        field_str = row[1]
+        field_str = row[1]  # noqa: F841
 
         if field_str:
-            if field_str[-1] == '/':
-                fields_str += field_str[:-1] + ','
+            if field_str[-1] == "/":  # noqa: F841
+                fields_str += field_str[:-1] + ","  # noqa: F841
             else:
-                fields_str += field_str + ' '
+                fields_str += field_str + " "  # noqa: F841
 
-    fields = fields_str[:-1].split(',')
+    fields = fields_str[:-1].split(",")
     return Record(code=rows[0][0], fields=fields, rows=rows)
 
 
@@ -63,9 +67,7 @@ def _build_record(rows):
 
 
 def record_generator(lines):
-    rows = iter(
-        [(RecordCode(line[:2]), line[3:]) for line in lines]
-    )
+    rows = iter([(RecordCode(line[:2]), line[3:]) for line in lines])
 
     records = [next(rows)]
     while True:

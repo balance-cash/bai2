@@ -9,15 +9,15 @@ def parse_date(value):
     """
     YYMMDD Format.
     """
-    return datetime.datetime.strptime(value, '%y%m%d').date()
+    return datetime.datetime.strptime(value, "%y%m%d").date()
 
 
 def write_date(date):
-    return date.strftime('%y%m%d')
+    return date.strftime("%y%m%d")
 
 
 def parse_time(value):
-    clock_pattern = re.compile(r'\d\d:\d\d:\d\d')
+    clock_pattern = re.compile(r"\d\d:\d\d:\d\d")
 
     if clock_pattern.match(value):
         return parse_clock_time(value)
@@ -26,7 +26,7 @@ def parse_time(value):
 
 
 def parse_clock_time(value):
-    return datetime.datetime.strptime(value, '%H:%M:%S').time()
+    return datetime.datetime.strptime(value, "%H:%M:%S").time()
 
 
 def parse_military_time(value):
@@ -41,9 +41,9 @@ def parse_military_time(value):
     # 9999 indicates end of the day
     # 2400 indicates end of the day but 24:00 not allowed so
     # it's really 23:59
-    if value == '9999' or value == '2400':
+    if value == "9999" or value == "2400":
         return datetime.time.max
-    return datetime.datetime.strptime(value, '%H%M').time()
+    return datetime.datetime.strptime(value, "%H%M").time()
 
 
 def write_time(time, clock_format_for_intra_day=False):
@@ -54,27 +54,31 @@ def write_time(time, clock_format_for_intra_day=False):
 
 
 def write_clock_time(time):
-    date = datetime.datetime.now().replace(hour=time.hour, minute=time.minute, second=time.second)
-    return datetime.datetime.strftime(date, '%H:%M:%S')
+    date = datetime.datetime.now().replace(
+        hour=time.hour, minute=time.minute, second=time.second
+    )
+    return datetime.datetime.strftime(date, "%H:%M:%S")
 
 
 def write_military_time(time):
     if time == datetime.time.max:
-        return '2400'
+        return "2400"
     else:
         date = datetime.datetime.now().replace(hour=time.hour, minute=time.minute)
-        return datetime.datetime.strftime(date, '%H%M')
+        return datetime.datetime.strftime(date, "%H%M")
 
 
 def parse_type_code(value):
     try:
         return TypeCodes[value]
     except KeyError:
-        raise NotSupportedYetException(f"Type code '{value}' is not supported yet")
+        raise NotSupportedYetException(  # noqa: B904
+            f"Type code {value!r} is not supported yet"
+        )
 
 
 def convert_to_string(value):
     if value is None:
-        return ''
+        return ""
     else:
         return str(value)
