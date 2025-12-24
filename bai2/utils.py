@@ -72,9 +72,12 @@ def parse_type_code(value):
     try:
         return TypeCodes[value]
     except KeyError:
-        raise NotSupportedYetException(  # noqa: B904
-            f"Type code {value!r} is not supported yet"
-        )
+        if value == "":
+            return ""
+        else:
+            raise NotSupportedYetException(  # noqa: B904
+                f"Type code {value!r} is not supported yet"
+            )
 
 
 def convert_to_string(value):
