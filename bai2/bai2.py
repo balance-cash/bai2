@@ -19,4 +19,4 @@ def parse_from_file(f, **kwargs):
 
 
 def write(bai2_obj, **kwargs):
-    return '\n'.join(Bai2FileWriter(bai2_obj, **kwargs).write())
+    return "\n".join(Bai2FileWriter(bai2_obj, **kwargs).write())
