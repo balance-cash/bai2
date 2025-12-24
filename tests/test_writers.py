@@ -272,7 +272,7 @@ class AccountWriterTestCase(TestCase):
             models.TransactionDetail(
                 type_code=constants.TypeCodes["399"],
                 amount=2599,
-                text="BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",
+                text="BILLS BILLS BILLS BILLS BILLS",
             ),
             models.TransactionDetail(
                 type_code=constants.TypeCodes["399"],
@@ -301,10 +301,9 @@ class AccountWriterTestCase(TestCase):
             output,
             [
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
-                "88, BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS",
                 "16,399,1000,0,,,OTHER",
-                "49,23599,5/",
+                "49,23599,4/",
             ],
         )
 
@@ -338,16 +337,14 @@ class GroupWriterTestCase(TestCase):
             [
                 "02,8888888,CITIGB00,1,150715,2340,GBP,2/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
-                "88, BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS",
                 "16,399,1000,0,,,OTHER",
-                "49,23599,5/",
+                "49,23599,4/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
-                "88, BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS",
                 "16,399,1000,0,,,OTHER",
-                "49,23599,5/",
-                "98,47198,2,12/",
+                "49,23599,4/",
+                "98,47198,2,10/",
             ],
         )
 
@@ -383,28 +380,24 @@ class Bai2FileWriterTestCase(TestCase):
                 "01,CITIDIRECT,8888888,150715,2340,00131100,,,2/",
                 "02,8888888,CITIGB00,1,150715,2340,GBP,2/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
-                "88, BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS",
                 "16,399,1000,0,,,OTHER",
-                "49,23599,5/",
+                "49,23599,4/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
-                "88, BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS",
                 "16,399,1000,0,,,OTHER",
-                "49,23599,5/",
-                "98,47198,2,12/",
+                "49,23599,4/",
+                "98,47198,2,10/",
                 "02,8888888,CITIGB00,1,150715,2340,GBP,2/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
-                "88, BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS",
                 "16,399,1000,0,,,OTHER",
-                "49,23599,5/",
+                "49,23599,4/",
                 "03,77777777,GBP,010,10000,,,015,10000,,/",
-                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS BILLS",  # noqa: B950
-                "88, BILLS",
+                "16,399,2599,,,,BILLS BILLS BILLS BILLS BILLS",
                 "16,399,1000,0,,,OTHER",
-                "49,23599,5/",
-                "98,47198,2,12/",
-                "99,94396,2,26/",
+                "49,23599,4/",
+                "98,47198,2,10/",
+                "99,94396,2,22/",
             ],
         )
