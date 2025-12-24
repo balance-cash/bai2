@@ -810,3 +810,16 @@ class Bai2FileParserTestCase(TestCase):
         parser = Bai2FileParser(IteratorHelper(lines), check_integrity=False)
         bai2_file = parser.parse()
         self.assertTrue(isinstance(bai2_file, Bai2File))
+
+    def test_dummy_empty_type_code(self):
+        lines = [
+            "16,,1500000,1,DD1620,,DEALER PAYMENTS",
+        ]
+
+        parser = TransactionDetailParser(IteratorHelper(lines))
+        transaction = parser.parse()
+        self.assertIsNone(transaction.type_code)
+        self.assertEqual(transaction.amount, 1500000)
+        self.assertEqual(transaction.bank_reference, "DD1620")
+        self.assertEqual(transaction.customer_reference, None)
+        self.assertEqual(transaction.text, "DEALER PAYMENTS")
