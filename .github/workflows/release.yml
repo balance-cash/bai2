@@ -5,6 +5,7 @@ on:
 jobs:
   release:
     name: Release to PYPI
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
