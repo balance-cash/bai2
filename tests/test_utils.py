@@ -1,7 +1,15 @@
 import datetime
 from unittest import TestCase
 
-from bai2.utils import parse_date, parse_military_time, parse_time, write_time
+from bai2.constants import TypeCodes
+from bai2.exceptions import NotSupportedYetException
+from bai2.utils import (
+    parse_date,
+    parse_military_time,
+    parse_time,
+    parse_type_code,
+    write_time,
+)
 
 
 class ParseDateTestCase(TestCase):
@@ -89,3 +97,24 @@ class WriteTime(TestCase):
 
         str_value = write_time(time, True)
         self.assertEqual(str_value, "2400")
+
+
+class TestParseTypeCode(TestCase):
+    def test_parse_type_code(self):
+        parsed_value = parse_type_code("165")
+        self.assertEqual(TypeCodes["165"], parsed_value)
+
+    def test_parse_type_code_with_empty_string(self):
+        parsed_value = parse_type_code("")
+        self.assertEqual(TypeCodes[""], parsed_value)
+
+    def test_parse_type_code_with_none(self):
+        parsed_value = parse_type_code(None)
+        self.assertEqual(TypeCodes[""], parsed_value)
+
+    def test_parse_type_code_with_whitespace(self):
+        parsed_value = parse_type_code("  165  ")
+        self.assertEqual(TypeCodes["165"], parsed_value)
+
+    def test_parse_type_code_with_invalid_type_code(self):
+        self.assertRaises(NotSupportedYetException, parse_type_code, "ABC")
