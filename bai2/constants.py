@@ -2099,10 +2099,12 @@ TypeCodes = [
         TypeCodeLevel.detail,
         "Amount Applied to Service Charge",
     ),
+    TypeCode("738", None, TypeCodeLevel.status, "TypeCode 738"),
     TypeCode(
         "760", TypeCodeTransaction.debit, TypeCodeLevel.summary, "Loan Disbursement"
     ),
     TypeCode("801", None, TypeCodeLevel.status, "Sweep Balance"),
+    TypeCode("819", None, TypeCodeLevel.status, "TypeCode 819"),
     TypeCode("820", None, TypeCodeLevel.status, "TypeCode 820"),
     TypeCode("821", None, TypeCodeLevel.status, "TypeCode 821"),
     TypeCode("822", None, TypeCodeLevel.status, "TypeCode 822"),
@@ -2129,6 +2131,8 @@ TypeCodes = [
         "Incoming BACS Payment",
     ),
     TypeCode("830", None, TypeCodeLevel.status, "TypeCode 830"),
+    TypeCode("856", None, TypeCodeLevel.detail, "TypeCode 856"),
+    TypeCode("868", None, TypeCodeLevel.detail, "TypeCode 868"),
     TypeCode(
         "890",
         TypeCodeTransaction.misc,
