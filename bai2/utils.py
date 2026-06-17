@@ -9,13 +9,28 @@ def parse_date(value):
     """
     YYMMDD with a fallback to YYYYMMDD Format.
     """
-    try:
-        return datetime.datetime.strptime(value, "%y%m%d").date()
-    except ValueError:
+    length = parse_date_length(value)
+    if length == 6:
+        try:
+            return datetime.datetime.strptime(value, "%y%m%d").date()
+        except ValueError as err:
+            raise NotSupportedYetException(f"Date {value!r} is not supported") from err
+    elif length == 8:
         try:
             return datetime.datetime.strptime(value, "%Y%m%d").date()
         except ValueError as err:
             raise NotSupportedYetException(f"Date {value!r} is not supported") from err
+    else:
+        raise NotSupportedYetException(f"Date {value!r} is not supported")
+
+
+def parse_date_length(value) -> int:
+    if len(value) == 6 or len(value) == 8:
+        return len(value)
+    else:
+        raise NotSupportedYetException(
+            f"Dates with length {len(value)} are not supported"
+        )
 
 
 def write_date(date):
