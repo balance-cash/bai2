@@ -15,21 +15,21 @@ def parse_date(value):
             return datetime.datetime.strptime(value, "%y%m%d").date()
         except ValueError as err:
             raise NotSupportedYetException(f"Date {value!r} is not supported") from err
-    elif length == 8:
+    else:
+        # try to parse as YYYYMMDD, else raise exception
         try:
             return datetime.datetime.strptime(value, "%Y%m%d").date()
         except ValueError as err:
             raise NotSupportedYetException(f"Date {value!r} is not supported") from err
-    else:
-        raise NotSupportedYetException(f"Date {value!r} is not supported")
 
 
 def parse_date_length(value) -> int:
-    if len(value) == 6 or len(value) == 8:
-        return len(value)
+    date_length = len(value)
+    if date_length == 6 or date_length == 8:
+        return date_length
     else:
         raise NotSupportedYetException(
-            f"Dates with length {len(value)} are not supported"
+            f"Dates with length {date_length} are not supported"
         )
 
 
