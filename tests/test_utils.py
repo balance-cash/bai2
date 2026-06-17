@@ -20,6 +20,16 @@ class ParseDateTestCase(TestCase):
             parsed,
         )
 
+    def test_parse_4_digit_year(self):
+        parsed = parse_date("20160331")
+        self.assertEqual(
+            datetime.date(year=2016, month=3, day=31),
+            parsed,
+        )
+
+    def test_parse_invalid_date(self):
+        self.assertRaises(NotSupportedYetException, parse_date, "20161332")
+
 
 class ParseTimeTestCase(TestCase):
     def test_clock_time(self):

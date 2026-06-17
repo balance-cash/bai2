@@ -7,13 +7,25 @@ from .exceptions import NotSupportedYetException
 
 def parse_date(value):
     """
-    YYMMDD Format.
+    YYMMDD with a fallback to YYYYMMDD Format.
     """
-    return datetime.datetime.strptime(value, "%y%m%d").date()
+    try:
+        return datetime.datetime.strptime(value, "%y%m%d").date()
+    except ValueError:
+        try:
+            return datetime.datetime.strptime(value, "%Y%m%d").date()
+        except ValueError as err:
+            raise NotSupportedYetException(f"Date {value!r} is not supported") from err
 
 
 def write_date(date):
-    return date.strftime("%y%m%d")
+    try:
+        return date.strftime("%y%m%d")
+    except ValueError:
+        try:
+            return date.strftime("%Y%m%d")
+        except ValueError as err:
+            raise NotSupportedYetException(f"Date {date!r} is not supported") from err
 
 
 def parse_time(value):
