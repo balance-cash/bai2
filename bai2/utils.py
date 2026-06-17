@@ -29,7 +29,8 @@ def parse_date_length(value) -> int:
         return date_length
     else:
         raise NotSupportedYetException(
-            f"Dates with length {date_length} are not supported"
+            f"Date {value!r} has unsupported length {date_length}; "
+            "expected 6 (YYMMDD) or 8 (YYYYMMDD)"
         )
 
 
