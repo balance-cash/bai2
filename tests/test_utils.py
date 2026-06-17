@@ -27,7 +27,10 @@ class ParseDateTestCase(TestCase):
             parsed,
         )
 
-    def test_parse_invalid_date(self):
+    def test_parse_invalid_date_6_digit(self):
+        self.assertRaises(NotSupportedYetException, parse_date, "161332")
+
+    def test_parse_invalid_date_8_digit(self):
         self.assertRaises(NotSupportedYetException, parse_date, "20161332")
 
 
