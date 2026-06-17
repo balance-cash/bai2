@@ -5,9 +5,11 @@ from bai2.constants import TypeCodes
 from bai2.exceptions import NotSupportedYetException
 from bai2.utils import (
     parse_date,
+    parse_date_length,
     parse_military_time,
     parse_time,
     parse_type_code,
+    write_date,
     write_time,
 )
 
@@ -19,6 +21,30 @@ class ParseDateTestCase(TestCase):
             datetime.date(year=2015, month=3, day=30),
             parsed,
         )
+
+    def test_parse_4_digit_year(self):
+        parsed = parse_date("20160331")
+        self.assertEqual(
+            datetime.date(year=2016, month=3, day=31),
+            parsed,
+        )
+
+    def test_parse_invalid_date_6_digit(self):
+        self.assertRaises(NotSupportedYetException, parse_date, "161332")
+
+    def test_parse_invalid_date_8_digit(self):
+        self.assertRaises(NotSupportedYetException, parse_date, "20161332")
+
+    def test_parse_date_length(self):
+        self.assertEqual(parse_date_length("160331"), 6)
+        self.assertEqual(parse_date_length("20160331"), 8)
+        self.assertRaises(NotSupportedYetException, parse_date_length, "1603312")
+        self.assertRaises(NotSupportedYetException, parse_date_length, "160331234")
+        self.assertRaises(NotSupportedYetException, parse_date_length, "1603312345")
+        self.assertRaises(NotSupportedYetException, parse_date_length, "16033123456")
+        self.assertRaises(NotSupportedYetException, parse_date_length, "160331234567")
+        self.assertRaises(NotSupportedYetException, parse_date_length, "1603312345678")
+        self.assertRaises(NotSupportedYetException, parse_date_length, "16033123456789")
 
 
 class ParseTimeTestCase(TestCase):
@@ -71,6 +97,13 @@ class ParseMilitaryTime(TestCase):
             datetime.time(hour=0, minute=0),
             parsed_value,
         )
+
+
+class WriteDate(TestCase):
+    def test_write(self):
+        date = datetime.date(year=2016, month=3, day=31)
+        str_value = write_date(date)
+        self.assertEqual(str_value, "160331")
 
 
 class WriteTime(TestCase):

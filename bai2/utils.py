@@ -7,9 +7,31 @@ from .exceptions import NotSupportedYetException
 
 def parse_date(value):
     """
-    YYMMDD Format.
+    YYMMDD with a fallback to YYYYMMDD Format.
     """
-    return datetime.datetime.strptime(value, "%y%m%d").date()
+    length = parse_date_length(value)
+    if length == 6:
+        try:
+            return datetime.datetime.strptime(value, "%y%m%d").date()
+        except ValueError as err:
+            raise NotSupportedYetException(f"Date {value!r} is not supported") from err
+    else:
+        # try to parse as YYYYMMDD, else raise exception
+        try:
+            return datetime.datetime.strptime(value, "%Y%m%d").date()
+        except ValueError as err:
+            raise NotSupportedYetException(f"Date {value!r} is not supported") from err
+
+
+def parse_date_length(value) -> int:
+    date_length = len(value)
+    if date_length == 6 or date_length == 8:
+        return date_length
+    else:
+        raise NotSupportedYetException(
+            f"Date {value!r} has unsupported length {date_length}; "
+            "expected 6 (YYMMDD) or 8 (YYYYMMDD)"
+        )
 
 
 def write_date(date):
