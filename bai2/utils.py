@@ -19,13 +19,7 @@ def parse_date(value):
 
 
 def write_date(date):
-    try:
-        return date.strftime("%y%m%d")
-    except ValueError:
-        try:
-            return date.strftime("%Y%m%d")
-        except ValueError as err:
-            raise NotSupportedYetException(f"Date {date!r} is not supported") from err
+    return date.strftime("%y%m%d")
 
 
 def parse_time(value):
