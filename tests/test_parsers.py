@@ -681,9 +681,108 @@ class Bai2FileParserTestCase(TestCase):
             "BO:11111111 BO1:DOE JO",
         )
 
-    def test_only_version_2_supported(self):
+    def test_different_version_valid_bai2_file_is_parsed(self):
         """
-        Checks that BAI version 2 is supported.
+        Checks that a different version of BAI2 file is parsed
+        correctly if it's a valid BAI2 file (version 1 in this case).
+        """
+        lines = [
+            "01,122099999,123456789,040621,0200,1,,,1/",
+            "02,031001234,122099999,1,040620,2359,GBP,2/",
+            "03,0975312468,GBP,010,500000,,,190,70000000,4,0/",
+            "16,165,1500000,1,DD1620,, DEALER PAYMENTS",
+            "49,72000000,3/",
+            "98,72000000,1,5/",
+            "99,72000000,1,7/",
+        ]
+
+        parser = Bai2FileParser(IteratorHelper(lines))
+        bai2_file = parser.parse()
+
+        # BAI2 file
+        self.assertTrue(isinstance(bai2_file, Bai2File))
+
+        # BAI2 file header
+        bai2_header = bai2_file.header
+        self.assertTrue(isinstance(bai2_header, Bai2FileHeader))
+        self.assertEqual(bai2_header.sender_id, "122099999")
+        self.assertEqual(bai2_header.receiver_id, "123456789")
+        self.assertEqual(
+            bai2_header.creation_date, datetime.date(year=2004, month=6, day=21)
+        )
+        self.assertEqual(bai2_header.creation_time, datetime.time(hour=2, minute=0))
+        self.assertEqual(bai2_header.file_id, "1")
+        self.assertEqual(bai2_header.physical_record_length, None)
+        self.assertEqual(bai2_header.block_size, None)
+        self.assertEqual(bai2_header.version_number, 1)
+
+        # GROUP
+
+        self.assertEqual(len(bai2_file.children), 1)
+        group = bai2_file.children[0]
+        self.assertTrue(isinstance(group, Group))
+
+        # Group Header
+
+        group_header = group.header
+        self.assertTrue(isinstance(group_header, GroupHeader))
+        self.assertEqual(group_header.ultimate_receiver_id, "031001234")
+        self.assertEqual(group_header.originator_id, "122099999")
+        self.assertEqual(group_header.group_status, GroupStatus.update)
+        self.assertEqual(
+            group_header.as_of_date, datetime.date(year=2004, month=6, day=20)
+        )
+        self.assertEqual(group_header.as_of_time, datetime.time(hour=23, minute=59))
+        self.assertEqual(group_header.currency, "GBP")
+        self.assertEqual(
+            group_header.as_of_date_modifier, AsOfDateModifier.final_previous_day
+        )
+
+        # Group Trailer
+
+        group_trailer = group.trailer
+        self.assertTrue(isinstance(group_trailer, GroupTrailer))
+        self.assertEqual(group_trailer.group_control_total, 72000000)
+        self.assertEqual(group_trailer.number_of_accounts, 1)
+        self.assertEqual(group_trailer.number_of_records, 5)
+
+        # ACCOUNT
+
+        self.assertEqual(len(group.children), 1)
+        account = group.children[0]
+        self.assertTrue(isinstance(account, Account))
+
+        # Account Identifier
+
+        account_identifier = account.header
+        self.assertTrue(isinstance(account_identifier, AccountIdentifier))
+        self.assertEqual(account_identifier.customer_account_number, "0975312468")
+        self.assertEqual(account_identifier.currency, "GBP")
+
+        # Account Trailer
+
+        account_trailer = account.trailer
+        self.assertTrue(isinstance(account_trailer, AccountTrailer))
+        self.assertEqual(account_trailer.account_control_total, 72000000)
+        self.assertEqual(account_trailer.number_of_records, 3)
+
+        # Transaction Detail
+
+        self.assertEqual(len(account.children), 1)
+        transaction = account.children[0]
+        self.assertTrue(isinstance(transaction, TransactionDetail))
+        self.assertEqual(transaction.type_code, TypeCodes["165"])
+        self.assertEqual(transaction.amount, 1500000)
+        self.assertEqual(transaction.funds_type, FundsType.one_day_availability)
+        self.assertEqual(transaction.availability, None)
+        self.assertEqual(transaction.bank_reference, "DD1620")
+        self.assertEqual(transaction.customer_reference, None)
+        self.assertEqual(transaction.text, " DEALER PAYMENTS")
+
+    def test_different_version_invalid_bai2_file_is_not_parsed(self):
+        """
+        Checks that a different version of BAI2 file is not parsed
+        if it's an invalid BAI2 file (version 1 in this case).
         """
         lines = [
             "01,122099999,123456789,040621,0200,1,,,1/",
@@ -694,10 +793,8 @@ class Bai2FileParserTestCase(TestCase):
             "98,18650000,1,5/",
             "99,18650000,1,7/",
         ]
-
         parser = Bai2FileParser(IteratorHelper(lines))
-
-        self.assertRaises(NotSupportedYetException, parser.parse)
+        self.assertRaises(IntegrityException, parser.parse)
 
     def test_multiple_groups(self):
         lines = [

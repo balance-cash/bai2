@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 from .constants import AsOfDateModifier, FundsType, GroupStatus
-from .exceptions import IntegrityException, NotSupportedYetException, ParsingException
+from .exceptions import IntegrityException, ParsingException
 from .models import (
     Account,
     AccountIdentifier,
@@ -415,12 +415,6 @@ class Bai2FileHeaderParser(BaseSingleParser):
         ("block_size", int),
         ("version_number", int),
     )
-
-    def validate(self, obj):
-        super().validate(obj)
-
-        if obj.version_number != 2:
-            raise NotSupportedYetException("Only BAI version 2 supported")
 
 
 class Bai2FileTrailerParser(BaseSingleParser):
