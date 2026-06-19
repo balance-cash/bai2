@@ -714,7 +714,7 @@ class Bai2FileParserTestCase(TestCase):
         self.assertEqual(bai2_header.file_id, "1")
         self.assertEqual(bai2_header.physical_record_length, None)
         self.assertEqual(bai2_header.block_size, None)
-        self.assertEqual(bai2_header.version_number, 2)
+        self.assertEqual(bai2_header.version_number, 1)
 
         # GROUP
 

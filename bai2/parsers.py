@@ -416,14 +416,6 @@ class Bai2FileHeaderParser(BaseSingleParser):
         ("version_number", int),
     )
 
-    def validate(self, obj):
-        super().validate(obj)
-
-        if obj.version_number != 2:
-            # Normalize version number to 2, only rely
-            # on the integrity checks to parse the file.
-            obj.version_number = 2
-
 
 class Bai2FileTrailerParser(BaseSingleParser):
     model = Bai2FileTrailer
